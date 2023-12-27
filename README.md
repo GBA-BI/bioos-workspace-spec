@@ -4,7 +4,7 @@ Bio-OS, short for Bio-medical Big Data Operating System, is an open-source frame
 Bio-OS workspace spec is licensed under the [MIT License](LICENSE). 
 
 ## Specifications
-The current version is draft-2, you can see the human-readable [OpenAPI YAML description](versions/draft-2/spec.yaml). You can also explore the specification in the [Swagger Editor](https://editor.swagger.io/?url=https://zhou-jianwen.github.io/bioos-workspace-spec/versions/draft-2/spec.yaml) .
+The current version is draft-2, you can see the human-readable [OpenAPI YAML description](versions/draft-2/spec.yaml). You can also explore the specification in the [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/zhou-jianwen/bioos-workspace-spec/main/versions/draft-2/spec.yaml) .
 
 ## Published Workspaces
 Digger, short for Digital Gallery, is the Bio-OS Workspace warehouse maintained by Guangzhou Laboratory where you can find, download and submit Workspaces.
