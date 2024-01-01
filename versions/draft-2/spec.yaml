@@ -1,0 +1,243 @@
+openapi: 3.0.0
+info:
+  version: SPEConly
+  title: 'Bio-OS Workspace Sehema Draft-1'
+  description: |-
+    Bio-OS, short for Bio-medical Big Data Operating System, is an open-source framework to rapidly construct Bioinformatics analysis platforms on various infrastructures like local, HPC and Clouds resources. Workspace is the basic data structure in Bio-OS which encapsulates all related elements for a research project, including data, programs and tools in secondary and tertiary analysis procedures with their environments, analysis logs, and the dashborad to describe the research project. It is designed as a self-descriptive object to deposit, disseminate, publish and reproduce the research project work. Both Workspace object and its sub-objects are strictly reprocucible, compatible with multiple widely useed formats. People can use the entire Workspace object or the sub-objects to aid there research work.
+    <br><br>
+    The format of Bio-OS Workspace object is described and constrained by this SPEC documnet which is writen with OPENAPI syntax. It is designed for Bio-OS instance platforms and Workspace archives like Digger to compose, transfer, and validate Workspace objects. The current version of the Bio-OS workspace is draft1.
+    
+
+      
+servers:
+  # Added by API Auto Mocking Plugin
+  - url: /ga4gh/wrs/draft-1
+    
+paths: {}
+
+components:
+  schemas: 
+    Workspace:
+      type: object
+      properties:
+        version:
+          type: string
+          #  For the people that see draft-1 SPEC document, there are only 'draft-1' version can be used. 
+          default: draft-1
+          enum: 
+            - draft-1
+          description: |-
+             Workspace SPEC version statement. For reproducibility purposes it is critical that Workspace object must state a SPEC version so an engine knows how to process it. A worksapce document must contain a version statement on the first non-comment line of the file.
+       
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        long_story:
+          $ref: '#/components/schemas/LongStory'
+        data_models:
+          type: array
+          description: List of DataModel tables.
+          items:
+            $ref: '#/components/schemas/DataModel'
+        workflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/Workflow'
+          description: |-
+            List of workflows.
+        ies_projects:
+            type: array
+            description: List of IES projects.
+            items:
+              $ref: '#/components/schemas/iesProject'
+        annotations:
+          type: object
+          additionalProperties:
+            description: >-
+              Other user defined key-value pairs about the workspace.
+      required:
+        - version
+        
+    Metadata:
+      properties:
+        name:
+          type: string
+          description:  The display name of the Workspace object.
+        description:
+          type: string
+          description:  The display brief plain text description of a Workspace object.
+        author:
+          type: string
+        labels:
+          description: The display tags of a Workspace object.
+          type: array
+          items: 
+            type: string
+      
+              
+    LongStory:
+      type: object
+      description: |-
+        The rich format long story of the Workspace object. This sub-object can be written in formats like markdown, rmarkdown, restructed text, etc. An edit environment and a rendering tool must be specified unless the format is markdown.
+      properties:
+        url: 
+          type: string
+          pattern: '^[drs|s3|tos|http|https]://.*\.$'
+        file_extension:
+          type: string
+          enum: 
+            - ipynb
+            - md
+          default: ipynb
+        ies_project: 
+          $ref: '#/components/schemas/iesProject'
+      required: 
+        - url
+        
+    DataModel:
+      type: object
+      description: File of tabular data in tab-separated values format or comma-separated values format that help to organize and keep track of all project data, no matter where in the cloud data files are physically stored. 
+      required:
+        - path
+      properties:
+        name: 
+          type: string
+          description: The description of Datamodel.
+        description:
+          type: string
+          description: Optional user provided dataModel description.
+        url:
+          type: string
+          description: The URL of the DataModel table.
+          pattern: '^[drs|s3|tos|http|https]://.*\.[csv|tsv]$'
+        type:
+          description: |-
+            The class statement of the DataModel table. The file will be processed by the Bio-OS instance platforms in one of the three ways: 
+            - `entity`: The entity DataModel table is for input data tables such as samples, participants, specimens, or whatever entity users choose. It is recommended that the first column be named with a suffix of "_id", and the user can define the remaining fields as needed.
+            - `entitySet`: A entitySet DataModel table groups together different entity tables in workspace. This is for the senariao that a workflow requires many data files to generate a single output. Also entitySet is shortcuts that enable users to analyse the same subset of entities again and again. 
+            - `workspace`: Files and other data that users will use across many analyses in the workspace can be organized in the workspace DataModel table. For example, the workspace DataModel allows users to include preloaded references including human genomic reference data table for either B37 or Hg38. 
+      
+          type: string
+          default: entity
+          enum: 
+            - entity
+            - entitySet
+            - workspace
+                
+    Workflow:
+      description:  Workflow declaration including what language it use and how to run the workflow. The submission commands to run the workflow and run resides hierarchically under this object.  
+      type: object
+      required:
+        - name
+        - metadata
+      properties:
+        name:
+          type: string
+          description:  Workflow name.
+        description:
+          type: string
+          description: Workflow description.
+        language:
+          type: string
+          default: WDL
+          description: The domain specific language the workflow use. It can be the widely used DSL like WDL, CWL, etc. or a DSL that defined by a WES server. 
+          enum: 
+            - CWL
+            - WDL
+            - NFL
+            - GALAXY
+            - SMK
+        version:
+          type: string
+          default: '1.0'
+          description:  The language version of the used DSL. The version should correspond to the actual declared version of the descriptor. For example, workflow defined in WDL could have a version 1.0 or draft-2.
+          enum:
+            - '1.0'
+            - '1.1'
+            - draft-2
+        main_workflow_path:
+          type: string
+          default: main.wdl
+          description: Entry file for the main workflow.
+        url:
+          type: string
+          description: The url of the workflow directory  package.
+        metadata:
+          type: object
+          required: 
+            - repo
+            - tag
+          properties:
+            scheme:
+              description: Protocol or mechanism used to access a workflow repository resource.
+              type: string
+              default: git
+              enum:
+                - git
+                - trs
+            tag:
+              description: Tag info used in Git repository.
+              type: string
+            token:
+              type: string
+              description: Credential used to authenticate and authorize access to a Git repository or service.
+        submissions: 
+          type: array
+          items:
+            $ref: '#/components/schemas/Submission'
+          
+    Submission:
+      description: Submission records and the run logs of this workflow. 
+      type: object
+      properties:
+        data_model_name:
+          type: string
+        entity_names:
+          type: array
+          items: 
+            type: string
+        inputs:
+          type: object
+          additionalProperties:
+            type: string
+        exposed_options:
+          type: object
+          additionalProperties:
+            type: string
+        runs:
+          type: array
+          description: List of WES runs in the format of WES log.
+          items:
+            $ref: 'https://raw.githubusercontent.com/ga4gh/workflow-execution-service-schemas/develop/openapi/workflow_execution_service.openapi.yaml#/components/schemas/RunLog'
+            
+
+    iesProject:
+      type: object
+      description: Project describes an instance of interactive execution tools.
+      properties:
+        type:
+          description: |-
+            With this statement, the platform will automatically handle the necessary adaptation tasks to initiate a specific IDE environment, eliminating the need for users to manually specify any other tags.
+          type: string
+          default: JupyterLab
+          enum:
+            - JupyterLab
+            - Coming soon
+        name:
+          type: string
+        description:
+          type: string
+        image:
+          type: string
+        # Commands similar to code Ocean run.sh used in the reproduction process
+        command:
+          type: string
+        inputs:
+          type: array
+          items:
+            $ref: 'https://ga4gh.github.io/task-execution-schemas/openapi.yaml#/components/schemas/tesInput'
+        outputs:
+          type: array
+          items:
+            $ref: 'https://ga4gh.github.io/task-execution-schemas/openapi.yaml#/components/schemas/tesOutput'
+        resources:
+          $ref: 'https://ga4gh.github.io/task-execution-schemas/openapi.yaml#/components/schemas/tesResources'
